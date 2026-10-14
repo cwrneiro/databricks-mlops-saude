@@ -136,8 +136,8 @@ training_set_specs = build_training_set("train")  # registrado junto com o model
 training_pdf = training_set_specs.load_df().toPandas()
 test_pdf = build_training_set("test").load_df().toPandas()
 
-# Nota: amostra de 100k linhas para o HPO caber no tempo de uma demo ao vivo; remova para treinar na base toda
-training_pdf = training_pdf.sample(n=min(100_000, len(training_pdf)), random_state=2025)
+# Nota: amostra de 30k linhas para o HPO caber no tempo de uma demo ao vivo; remova para treinar na base toda
+training_pdf = training_pdf.sample(n=min(30_000, len(training_pdf)), random_state=2025)
 
 X_train, Y_train = (training_pdf.drop(label_col, axis=1), training_pdf[label_col])
 
@@ -416,7 +416,7 @@ mlflow_optuna_study_debug = MlflowSparkStudy(
 )
 mlflow_optuna_study_debug._directions = ["maximize"]
 
-mlflow_optuna_study_debug.optimize(objective_fn, n_trials=8, n_jobs=4)
+mlflow_optuna_study_debug.optimize(objective_fn, n_trials=4, n_jobs=4)
 
 
 # COMMAND ----------
@@ -525,7 +525,7 @@ def optuna_hpo_fn(n_trials: int, X_train: pd.DataFrame, Y_train: pd.Series, X_te
 
 # Executa o treino, distribuído entre os workers/nós
 distributed_study = optuna_hpo_fn(
-  n_trials=16, # Diminua para demos ao vivo
+  n_trials=4, # Aumente (ex.: 16) fora de demos ao vivo
   X_train=X_train,
   X_test=X_test,
   Y_train=Y_train,
@@ -537,7 +537,7 @@ distributed_study = optuna_hpo_fn(
   run_name="hiper-hpo-best-run",
   optuna_sampler_in=new_sampler(),
   optuna_pruner_in=NoneValuePruner(),
-  # n_jobs = 2, # Aumente para mais trials em paralelo
+  n_jobs=4, # Trials em paralelo
 )
 
 # COMMAND ----------
