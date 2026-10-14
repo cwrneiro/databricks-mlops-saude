@@ -202,6 +202,13 @@ if not is_smoke_test:
     else:
         print("Failed to publish after multiple retries.")
 
+    # Aguarda a primeira sincronização: um endpoint criado antes da online table ficar online falha
+    while not (estado := w.database.get_synced_database_table(name=f"{catalog}.{db}.hiper_features_online").data_synchronization_status.detailed_state.value).startswith("SYNCED_TABLE_ONLINE"):
+        assert "FAILED" not in estado, f"Sincronização da online table falhou: {estado}"
+        print(f"Online table: {estado}, aguardando...")
+        time.sleep(30)
+    print(f"Online table: {estado}")
+
 # COMMAND ----------
 
 # MAGIC %md
